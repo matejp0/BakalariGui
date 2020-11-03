@@ -51,6 +51,7 @@ public class Window extends JFrame{
         JLabel userInfoLabel = new JLabel(bakal.getUserInfo());
             g.gridx=0; g.gridy=0; g.gridwidth=2;
             pane.add(userInfoLabel, g);
+
         String[] hours = new String[13];
         Arrays.fill(hours, "");
         JTable timetableTable = new JTable(bakal.getTimetable(date()[0], date()[1], date()[2]), hours);
