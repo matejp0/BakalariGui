@@ -6,15 +6,17 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 
 public class Main implements ActionListener {
-static Window loginWindow, infoWindow;
-static Bakal bakal;
-String url, username, password;
-private boolean loginSuccess=false;
+
+private static Window loginWindow, infoWindow;
+private static Bakal bakal;
+private String url, username, password;
+private boolean loginSuccess = false;
+
     public static void main(String[] args) {
         getLogin();
     }
 
-    public static void getLogin() {
+    private static void getLogin() {
         loginWindow = new Window("Login");
         loginWindow.login();
         loginWindow.pack();
@@ -26,7 +28,7 @@ private boolean loginSuccess=false;
             System.exit(0);
         }
     }
-    public static void getInfo() throws IOException {
+    private static void getInfo() throws IOException {
         infoWindow = new Window("Rozvrh");
         infoWindow.userInfo(bakal);
         infoWindow.pack();
@@ -35,7 +37,7 @@ private boolean loginSuccess=false;
 
         loginWindow.dispose(); //close login window
     }
-    public void initBakal() throws IOException {
+    private void initBakal() throws IOException {
         bakal = new Bakal(url);
         loginSuccess=bakal.login(username, password, false);
     }

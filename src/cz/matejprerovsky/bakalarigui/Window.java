@@ -17,6 +17,7 @@ public class Window extends JFrame{
     public JTextField getUrlField() { return urlField; }
     public JTextField getUsername() { return username; }
     public JPasswordField getPassword() { return password; }
+
     public JButton getLoginBtn() { return loginBtn; }
     public JButton getMarksBtn() { return marksBtn; }
 
@@ -29,7 +30,10 @@ public class Window extends JFrame{
         this.setIconImage(Toolkit.getDefaultToolkit().getImage("baky.png"));
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setResizable(true);
+        try { UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); }
+        catch (UnsupportedLookAndFeelException | ClassNotFoundException | InstantiationException | IllegalAccessException ignored) { }
     }
+
     /*
     private void getMarks(Bakal bakal) throws IOException {
         Window marksWindow = new Window("Rozvrh", bakal);

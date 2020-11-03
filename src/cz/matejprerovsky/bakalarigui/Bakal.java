@@ -34,14 +34,14 @@ public class Bakal {
         targetURL=new URL(baseURL+"/api/login");
 
         //-----login--------------------------------------------------
-        try{ got=this.request(targetURL, "POST", data, null); } catch (IOException e){}
+        try{ got=this.request(targetURL, "POST", data, null); } catch (IOException ignored){}
 
         //-----Process JSON output---------------------------
         try {
             JSONObject obj = new JSONObject(got);
             accessToken = obj.getString("access_token");
             refreshToken = obj.getString("refresh_token");
-        } catch (NullPointerException e){}
+        } catch (NullPointerException ignored){}
 
         return got != null;
     }
@@ -198,7 +198,7 @@ public class Bakal {
                 }
                 //-----------------------------------------------
                 //---Get theme of lesson---
-                String theme = lesson.get("Theme").toString();
+                //String theme = lesson.get("Theme").toString();
                 //---Print result---
                 String result=/*"\n"+" " + (hourId-2) + ": " + */subjectAbbrev/* + " " +(hourTimes[hourId-2])*/;
                 //if(!theme.equals(""))
