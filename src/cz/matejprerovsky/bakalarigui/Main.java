@@ -53,18 +53,18 @@ private boolean connected;
             try { initBakal(); } catch (IOException e) { e.printStackTrace(); }
 
             if(loginSuccess) {
-                loginWindow.throwErrorMessage("Úspěšně přihlášeno", "Úspěch", JOptionPane.INFORMATION_MESSAGE);
                 try { getInfo(); } catch (IOException e) { e.printStackTrace(); } catch (BackingStoreException e) { e.printStackTrace(); }
+                loginWindow.throwMessage("Úspěšně přihlášeno", "Úspěch", JOptionPane.INFORMATION_MESSAGE);
             }
 
             else if((!loginSuccess) && connected)
-                loginWindow.throwErrorMessage("Vadné přihlašovací údaje", "Error", JOptionPane.WARNING_MESSAGE);
+                loginWindow.throwMessage("Vadné přihlašovací údaje", "Error", JOptionPane.WARNING_MESSAGE);
 
             else if(!connected)
-                loginWindow.throwErrorMessage("Žádné internetové připojení!", "Error internetového připojení", JOptionPane.ERROR_MESSAGE);
+                loginWindow.throwMessage("Žádné internetové připojení!", "Error internetového připojení", JOptionPane.ERROR_MESSAGE);
         }
         else if(actionEvent.getSource().equals(infoWindow.getMarksBtn())){
-            infoWindow.throwErrorMessage("Implementaci této funkce do GUI jsem ještě nedokončil, takže nebude spuštěna.", "Vývoj", JOptionPane.INFORMATION_MESSAGE);
+            infoWindow.throwMessage("Implementaci této funkce do GUI jsem ještě nedokončil, takže nebude spuštěna.", "Vývoj", JOptionPane.INFORMATION_MESSAGE);
         }
     }
 }

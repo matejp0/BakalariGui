@@ -14,19 +14,11 @@ public class Window extends JFrame{
     private GridBagConstraints g;
     private Container pane;
 
-    private Bakal bakal;
-
     public JTextField getUrlField() { return urlField; }
     public JTextField getUsername() { return username; }
     public JPasswordField getPassword() { return password; }
-
-    public JButton getLoginBtn() {
-        return loginBtn;
-    }
-
-    public JButton getMarksBtn() {
-        return marksBtn;
-    }
+    public JButton getLoginBtn() { return loginBtn; }
+    public JButton getMarksBtn() { return marksBtn; }
 
     Window(String additionalTitle) {
         this.setTitle("Bakaláři" + " – " + additionalTitle);
@@ -37,16 +29,7 @@ public class Window extends JFrame{
         this.setIconImage(Toolkit.getDefaultToolkit().getImage("baky.png"));
 
     }
-    Window(String additionalTitle, Bakal bakal) {
-        this.bakal = bakal;
-        this.setTitle("Bakaláři" + " – " + additionalTitle);
-        pane = this.getContentPane();
-        pane.setLayout(new GridBagLayout());
-        g = new GridBagConstraints();
-        g.insets = new Insets(5, 5, 5, 5);
-        this.setIconImage(Toolkit.getDefaultToolkit().getImage("baky.png"));
-
-    }
+    /*
     private void getMarks(Bakal bakal) throws IOException {
         Window marksWindow = new Window("Rozvrh", bakal);
         marksWindow.marks(bakal);
@@ -61,6 +44,8 @@ public class Window extends JFrame{
         g.gridx = g.gridy = 0;
         pane.add(textArea, g);
     }
+
+     */
     public void userInfo(Bakal bakal) throws IOException, BackingStoreException {
         JLabel userInfoLabel = new JLabel(bakal.getUserInfo());
             g.gridx=0; g.gridy=0; g.gridwidth=2;
@@ -90,19 +75,15 @@ public class Window extends JFrame{
             g.gridx=0; g.gridy=1; g.gridwidth=1;
             pane.add(username, g);
         password = new JPasswordField("Password", 12);
-            g.gridx=1;
-            g.gridy=1;
-            g.gridwidth=1;
+            g.gridx=1; g.gridy=1; g.gridwidth=1;
             pane.add(password, g);
         loginBtn = new JButton("Login");
-            g.gridx=2;
-            g.gridy=1;
-            g.gridwidth=1;
+            g.gridx=2; g.gridy=1; g.gridwidth=1;
             pane.add(loginBtn, g);
             loginBtn.addActionListener(new Main());
     }
 
-    public void throwErrorMessage(String error, String title, int type){
+    public void throwMessage(String error, String title, int type){
         JOptionPane.showMessageDialog(this, error, title, type);
     }
 
