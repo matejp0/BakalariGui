@@ -10,21 +10,16 @@ import org.json.*;
 import static jdk.nashorn.internal.objects.NativeString.trim;
 
 public class Bakal {
+    private static boolean connected;
     final private String[] dayOfWeek = new String[]{"Po", "Út", "Stř", "Čt", "Pá"};//new String[]{"Pondělí", "Úterý", "Středa", "Čtvrtek", "Pátek"};
-    private int[] baseSubjectId;
-    private String[] baseSubjectAbbrev;
-    private String[] hourTimes;
-    private String[] roomIds;
-    private String[] roomAbbrevs;
 
-    private String baseURL;
+    private final String baseURL;
     private URL targetURL;
     private String data;
     private String got;
-    private String output;
     private String accessToken;
     private String refreshToken;
-    private boolean connected;
+    //private boolean connected;
     public Bakal(String baseURL){
         this.baseURL=baseURL;
     }
@@ -39,27 +34,16 @@ public class Bakal {
         targetURL=new URL(baseURL+"/api/login");
 
         //-----login--------------------------------------------------
-        try{
-            got=this.request(targetURL, "POST", data, null);
-            System.out.println("Login successful! :)");
-        }
-        catch (IOException e){
-            System.out.println("Wrong login or no internet!");
-            //System.exit(0);
-        }
+        try{ got=this.request(targetURL, "POST", data, null); } catch (IOException e){}
 
         //-----Process JSON output---------------------------
         try {
             JSONObject obj = new JSONObject(got);
             accessToken = obj.getString("access_token");
             refreshToken = obj.getString("refresh_token");
-        }
-        catch (NullPointerException e){}
+        } catch (NullPointerException e){}
 
-        if(got!=null)
-            return true;
-        else
-            return false;
+        return got != null;
     }
 
     public String getUserInfo() throws IOException {
@@ -68,12 +52,11 @@ public class Bakal {
 
         //-----Process JSON output-------------------------
         JSONObject obj = new JSONObject(got);
-        String FullName = obj.getString("FullName");
 
-        return FullName;
+        return obj.getString("FullName");
     }
 
-    public String getMarks() throws IOException {
+    /*public String getMarks() throws IOException {
         String output = null;
         targetURL=new URL(baseURL+"/api/3/marks");
         got=this.request(targetURL, "GET", null, accessToken);
@@ -93,7 +76,6 @@ public class Bakal {
             //-----Get marks-------------------------
             JSONArray marks = subject.getJSONArray("Marks");
             String marksString = "";
-            String markDate = "";
             for (int j = 0; j < marks.length(); j++) {
                 JSONObject mark = marks.getJSONObject(j);
                 String markText = mark.getString("MarkText");
@@ -109,7 +91,8 @@ public class Bakal {
             //---------------------------------------------
             String result = "";
             result += baseSubjectAbbrev[i];
-            if (averageText != "null" || averageText.length() != 0)
+            System.out.println(averageText);
+            if (!averageText.equals("null") || averageText.length() != 0)
                 result += " (" + averageText + ")";
             result += ":\n" + marksString;
             System.out.println(result);
@@ -117,44 +100,40 @@ public class Bakal {
         }
         return output;
     }
+    */
     public String[][] getTimetable(int day, int month, int year) throws IOException {
-        String output="";
         String[][] arr = new String[6][13];
         targetURL=new URL(baseURL+"/api/3/timetable/actual?date="+year+"-"+month+"-"+day);
         got=this.request(targetURL, "GET", null, accessToken);
         JSONObject obj = new JSONObject(got);
 
-        output+="Rozvrh:\n";
-
         //-----Hours--------------------------------------
         JSONArray hours = obj.getJSONArray("Hours");
-        hourTimes=new String[hours.length()];
+        String[] hourTimes = new String[hours.length()];
         for(int i=0; i<hours.length(); i++){
             JSONObject hour=hours.getJSONObject(i);
             String BeginTime = hour.getString("BeginTime");
-            String EndTime = hour.getString("EndTime");
+            //String EndTime = hour.getString("EndTime");
             hourTimes[i]=" (" + BeginTime + ")"/*" - " + EndTime+")"*/;
         }
         //------------------------
 
         //-----Rooms-----------------------------------------
         JSONArray rooms = obj.getJSONArray("Rooms");
-        roomIds = new String[rooms.length()];
-        roomAbbrevs = new String[rooms.length()];
+        String[] roomIds = new String[rooms.length()];
+        String[] roomAbbrevs = new String[rooms.length()];
         for(int b=0; b<rooms.length(); b++){
             JSONObject room = rooms.getJSONObject(b);
             roomIds[b] = room.get("Id").toString();
             roomAbbrevs[b] = room.get("Abbrev").toString();
         }
-        for(int slup=0; slup<roomAbbrevs.length; slup++){
-            System.out.print(roomAbbrevs[slup] + " ");
-        }
+
         //------------------------
 
         //-----Subjects----------------------------------------
         JSONArray subjects = obj.getJSONArray("Subjects");
-        baseSubjectAbbrev=new String[subjects.length()+1];
-        baseSubjectId=new int[subjects.length()+1];
+        String[] baseSubjectAbbrev = new String[subjects.length() + 1];
+        int[] baseSubjectId = new int[subjects.length() + 1];
         baseSubjectId[0]=0;
         baseSubjectAbbrev[0]="";
         for(int a=0; a<subjects.length(); a++){
@@ -186,7 +165,7 @@ public class Bakal {
                 //-----Get room-------------------------
                 String roomId = lesson.getString("RoomId");
                 int indexOfRoom = 0;
-                for(int c = 0; c<roomIds.length; c++){
+                for(int c = 0; c< roomIds.length; c++){
                     if(roomId.equals(roomIds[c]))
                         indexOfRoom=c;
                 }
@@ -194,10 +173,10 @@ public class Bakal {
                 //-------------------------
 
                 //-----Get changes in timetable-----
-                JSONObject changeIs = null;
+                JSONObject changeIs;
                 String changeDescription="";
                 String change = lesson.get("Change").toString();
-                if (change != "null") {
+                if (!change.equals("null")) {
                     changeIs = lesson.getJSONObject("Change");
                     changeDescription = changeIs.get("Description").toString();
                 }
@@ -206,11 +185,9 @@ public class Bakal {
                 //-----Get subject id and find its abbreviation-----
                 String subjectAbbrev="";
                 
-                String subjectIdString = trim(lesson.get("SubjectId")).toString();
-                int subjectId = 0;
-                if (subjectIdString != "null") {
-                    subjectId = Integer.parseInt(subjectIdString);
-                }
+                String subjectIdString = trim(lesson.get("SubjectId"));
+                int subjectId = Integer.parseInt(subjectIdString);
+
                 int indexOfSubject = 0;
                 for (int k = 0; k < baseSubjectId.length; k++) {
                     if (subjectId == baseSubjectId[k]) {
@@ -229,40 +206,36 @@ public class Bakal {
                 
                 result+=" " + roomAbbrev;
                 //---If there is some change in timetable, print it---
-                if (changeDescription!="")
+                if (!changeDescription.equals(""))
                     result+=" (" + changeDescription + ")";
 
                 arr[i+1][hourId-2+1] = result;
 
                 for(int s=0; s<12; s++){
-                    arr[0][s+1] = String.valueOf(s) +(hourTimes[s]);
+                    arr[0][s+1] = s +(hourTimes[s]);
                 }
             }
-
         }
-        System.out.println(got);
         return arr;
-
     }
 
-    public boolean connected(){
+    public static boolean connected(){
         connected = false;
         try {
             URL url = new URL("http://www.google.com");
             URLConnection connection = url.openConnection();
             connection.connect();
             connected = true;
-        } catch (MalformedURLException e) {
-            connected = false;
         } catch (IOException e) {
             connected = false;
         }
+
         return connected;
     }
     private String request(URL target, String method, String data, String token) throws IOException {
         connected();
         //clear output
-        output=null;
+        String output = null;
 
         if(connected) {
             //-----Http request--------------------------------------------------
@@ -277,7 +250,7 @@ public class Bakal {
             conn.setRequestMethod(method);
             conn.setUseCaches(false);
             if (data != null) {
-                conn.setRequestProperty("Content-Length", "" + Integer.toString(data.length()));
+                conn.setRequestProperty("Content-Length", "" + data.length());
                 try (OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream())) {
                     out.write(data);
                 }
@@ -291,7 +264,7 @@ public class Bakal {
                 }
             }
             //---remove "null" on the start of output JSON
-            output=output.substring(4);
+            output = output.substring(4);
         }
 
         return output;
@@ -300,9 +273,8 @@ public class Bakal {
         String[] dateInt=dateString.split("-");
         dateInt[2]=dateInt[2].substring(0, 2);
         dateInt[2]=dateInt[2].replaceFirst("^0+(?!$)", "");
-        String date=dateInt[2] + ". " + dateInt[1] /*+ ". " + dateInt[0]*/;
 
-        return date;
+        return dateInt[2] + ". " + dateInt[1];
     }
 
 

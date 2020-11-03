@@ -1,18 +1,18 @@
 package cz.matejprerovsky.bakalarigui;
-import java.awt.*;
+
 import javax.swing.*;
+import java.awt.*;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
-import java.util.prefs.BackingStoreException;
-import java.util.prefs.Preferences;
 
 public class Window extends JFrame{
     private JButton loginBtn, marksBtn;
     private JTextField urlField, username;
     private JPasswordField password;
-    private GridBagConstraints g;
-    private Container pane;
+    private final GridBagConstraints g;
+    private final Container pane;
 
     public JTextField getUrlField() { return urlField; }
     public JTextField getUsername() { return username; }
@@ -21,13 +21,14 @@ public class Window extends JFrame{
     public JButton getMarksBtn() { return marksBtn; }
 
     Window(String additionalTitle) {
-        this.setTitle("Bakaláři" + " – " + additionalTitle);
         pane = this.getContentPane();
         pane.setLayout(new GridBagLayout());
         g = new GridBagConstraints();
         g.insets = new Insets(5, 5, 5, 5);
+        this.setTitle("Bakaláři" + " – " + additionalTitle);
         this.setIconImage(Toolkit.getDefaultToolkit().getImage("baky.png"));
-
+        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.setResizable(true);
     }
     /*
     private void getMarks(Bakal bakal) throws IOException {
@@ -46,15 +47,12 @@ public class Window extends JFrame{
     }
 
      */
-    public void userInfo(Bakal bakal) throws IOException, BackingStoreException {
+    public void userInfo(Bakal bakal) throws IOException {
         JLabel userInfoLabel = new JLabel(bakal.getUserInfo());
             g.gridx=0; g.gridy=0; g.gridwidth=2;
             pane.add(userInfoLabel, g);
-
-        String hours[] = new String[13];
-        for(int h=0; h<hours.length; h++)
-            hours[h]="slup";
-
+        String[] hours = new String[13];
+        Arrays.fill(hours, "");
         JTable timetableTable = new JTable(bakal.getTimetable(date()[0], date()[1], date()[2]), hours);
             g.gridx=0; g.gridy=1; g.gridwidth=2;
             timetableTable.setCellSelectionEnabled(false);
@@ -62,6 +60,7 @@ public class Window extends JFrame{
             timetableTable.setRowHeight(50);
             JTableUtilities.setCellsAlignment(timetableTable, SwingConstants.CENTER);
             pane.add(timetableTable, g);
+
         marksBtn = new JButton("Známky");
             g.gridx=1; g.gridy=2; g.gridwidth=1;
             pane.add(marksBtn, g);
@@ -100,7 +99,7 @@ public class Window extends JFrame{
         output[1] = Integer.parseInt(formatter.format(date));
 
         //year
-        formatter = new SimpleDateFormat("YYYY");
+        formatter = new SimpleDateFormat("yyyy");
         output[2] = Integer.parseInt(formatter.format(date));
 
         return output;
