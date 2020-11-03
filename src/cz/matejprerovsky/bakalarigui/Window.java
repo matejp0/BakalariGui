@@ -78,8 +78,8 @@ public class Window extends JFrame{
             File file = new File("addressAndUsername.txt");
             Scanner fileReader = new Scanner(file);
             for (int i = 0; i < 2; i++) {
-                String data = new String();
-                data = fileReader.nextLine() + " ";
+                String data;
+                data = fileReader.nextLine();
                 dataArray[i] = data;
                 System.out.println(data);
             }
