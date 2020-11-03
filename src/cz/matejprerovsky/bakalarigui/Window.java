@@ -2,10 +2,13 @@ package cz.matejprerovsky.bakalarigui;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Scanner;
 
 public class Window extends JFrame{
     private JButton loginBtn, marksBtn;
@@ -70,10 +73,28 @@ public class Window extends JFrame{
             marksBtn.addActionListener(new Main());
     }
     public void login(){
-        urlField = new JTextField("https://",30);
+        String[] dataArray = new String[2];
+        try {
+            File file = new File("addressAndUsername.txt");
+            Scanner fileReader = new Scanner(file);
+            for (int i = 0; i < 2; i++) {
+                String data = new String();
+                data = fileReader.nextLine() + " ";
+                dataArray[i] = data;
+                System.out.println(data);
+            }
+            fileReader.close();
+        } catch (FileNotFoundException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+            dataArray[0]="https://";
+            dataArray[1]="username";
+        }
+
+        urlField = new JTextField(dataArray[0], 30);
             g.gridx=0; g.gridy=0; g.gridwidth=3; g.fill = GridBagConstraints.HORIZONTAL;
             pane.add(urlField, g);
-        username = new JTextField("Username", 12);
+        username = new JTextField(dataArray[1], 12);
             g.gridx=0; g.gridy=1; g.gridwidth=1;
             pane.add(username, g);
         password = new JPasswordField("Password", 12);
