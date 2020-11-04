@@ -92,7 +92,7 @@ public class Window extends JFrame {
             dataArray[1]="username";
             return false;
         }
-    }//
+    }///
     public void saveCsv(String url, String username) throws IOException{
         try (BufferedWriter bw = new BufferedWriter(new FileWriter("addressAndUsername.txt"))) {
             String[] values = {url, username};
