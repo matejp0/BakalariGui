@@ -8,18 +8,15 @@ import java.net.*;
 
 import org.json.*;
 
-import javax.swing.*;
 
 import static jdk.nashorn.internal.objects.NativeString.trim;
 
 public class Bakal {
-    public static boolean connected;
     final private String[] dayOfWeek = new String[]{"Po", "Út", "Stř", "Čt", "Pá"};//new String[]{"Pondělí", "Úterý", "Středa", "Čtvrtek", "Pátek"};
 
     private final String baseURL;
     private URL targetURL;
     private String data;
-    private String got;
     private String accessToken;
     private String refreshToken;
     private String[] baseSubjectAbbrev;
@@ -29,7 +26,8 @@ public class Bakal {
         this.baseURL = baseURL;
     }
 
-    public boolean login(String username, String password, boolean refresh) throws IOException {
+    public boolean login(String username, String password, boolean refresh) throws MalformedURLException {
+        String got=null;
         if(connected()){
             if (!refresh) {
                 data = "client_id=ANDR&grant_type=password&username=" + username + "&password=" + password;
@@ -39,28 +37,23 @@ public class Bakal {
             targetURL = new URL(baseURL + "/api/login");
 
             //-----login--------------------------------------------------
-            try {
-                got = this.request(targetURL, "POST", data, null);
-            } catch (IOException e) {
-                System.out.println("Wrong login");
-                Main.wrongLogin();
-            }
+            got = this.request(targetURL, "POST", data, null);
 
             //-----Process JSON output---------------------------
-            try {
+
                 JSONObject obj = new JSONObject(got);
                 accessToken = obj.getString("access_token");
                 refreshToken = obj.getString("refresh_token");
-            } catch (NullPointerException exception) {
-            }
+
+
         }
         else Main.notConnectedMessage();
         return (got != null);
     }
 
     public String getUserInfo() throws IOException {
-        String output="";
-        if(connected()) {
+        String got;
+        String output;
             targetURL = new URL(baseURL + "/api/3/user");
             got = this.request(targetURL, "GET", null, accessToken);
 
@@ -68,14 +61,14 @@ public class Bakal {
             JSONObject obj = new JSONObject(got);
 
             output = obj.getString("FullName");
-        }
-        else Main.notConnectedMessage();
+
         return output;
     }
 
     public String getMarks() throws IOException {
+        String got;
         String output = "";
-        if(connected()) {
+
             targetURL = new URL(baseURL + "/api/3/marks");
             got = this.request(targetURL, "GET", null, accessToken);
             JSONObject obj = new JSONObject(got);
@@ -115,28 +108,16 @@ public class Bakal {
                 System.out.println(result);
                 output += result;
             }
-        }
-        else Main.notConnectedMessage();
         return output;
     }
 
     public String[][] getTimetable(int day, int month, int year) throws IOException {
-        String[][] arr = new String[6][13];
-        if(connected()) {
+        String got;
+        String[][] arr = new String[5][13];
+
             targetURL = new URL(baseURL + "/api/3/timetable/actual?date=" + year + "-" + month + "-" + day);
             got = this.request(targetURL, "GET", null, accessToken);
             JSONObject obj = new JSONObject(got);
-
-            //-----Hours--------------------------------------
-            JSONArray hours = obj.getJSONArray("Hours");
-            String[] hourTimes = new String[hours.length()];
-            for (int i = 0; i < hours.length(); i++) {
-                JSONObject hour = hours.getJSONObject(i);
-                String BeginTime = hour.getString("BeginTime");
-                //String EndTime = hour.getString("EndTime");
-                hourTimes[i] = " (" + BeginTime + ")"/*" - " + EndTime+")"*/;
-            }
-            //------------------------
 
             //-----Rooms-----------------------------------------
             JSONArray rooms = obj.getJSONArray("Rooms");
@@ -171,8 +152,8 @@ public class Bakal {
                 //-----Day of week and Date-----------------------------
                 String dateString = den.getString("Date");
                 String dayOfWeekString = dayOfWeek[(den.getInt("DayOfWeek") - 1)];
-                arr[i + 1][0] += dayOfWeekString + " " + getDate(dateString);
-                arr[i + 1][0] = arr[i + 1][0].substring(4);
+                arr[i][0] += dayOfWeekString + " " + getDate(dateString);
+                arr[i][0] = arr[i][0].substring(4);
                 //----------------------------------
 
                 //-----Lessons--------------------------------------------------
@@ -229,20 +210,15 @@ public class Bakal {
                     if (!changeDescription.equals(""))
                         result += " (" + changeDescription + ")";
 
-                    arr[i + 1][hourId - 2 + 1] = result;
-
-                    for (int s = 0; s < 12; s++) {
-                        arr[0][s + 1] = s + (hourTimes[s]);
-                    }
+                    arr[i][hourId - 2 + 1] = result;
                 }
             }
-        }
-        else Main.notConnectedMessage();
+
         return arr;
     }
 
     public static boolean connected() {
-        connected = false;
+        boolean connected;
         try {
             URL url = new URL("http://www.google.com");
             URLConnection connection = url.openConnection();
@@ -254,11 +230,20 @@ public class Bakal {
         return connected;
     }
 
-    private String request(URL target, String method, String data, String token) throws IOException {
+    private String request(URL target, String method, String data, String token)  {
         //clear output
         String output = "";
-            //-----Http request--------------------------------------------------
-            HttpURLConnection conn = (HttpURLConnection) target.openConnection();
+        HttpURLConnection conn=null;
+        //-----Http request--------------------------------------------------
+        try {
+            conn = (HttpURLConnection) target.openConnection();
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+            Main.notConnectedMessage();
+        } catch (IOException e){
+            Main.error();
+        }
+        if(conn!=null) {
             conn.setDoOutput(true);
             conn.setInstanceFollowRedirects(true);
             conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
@@ -266,12 +251,21 @@ public class Bakal {
             if (token != null) {
                 conn.setRequestProperty("Authorization", "Bearer " + token);
             }
-            conn.setRequestMethod(method);
+            try {
+                conn.setRequestMethod(method);
+            } catch (ProtocolException e) {
+                Main.error();
+                e.printStackTrace();
+            }
             conn.setUseCaches(false);
+
             if (data != null) {
                 conn.setRequestProperty("Content-Length", "" + data.length());
                 try (OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream())) {
                     out.write(data);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Main.error();
                 }
             }
 
@@ -281,8 +275,11 @@ public class Bakal {
                 while ((currentLine = in.readLine()) != null) {
                     output += currentLine;
                 }
+            } catch (IOException e) {
+                e.printStackTrace();
+                Main.wrongLogin();
             }
-
+        }
         return output;
     }
 
@@ -297,5 +294,24 @@ public class Bakal {
         return dateInt[2] + ". " + dateInt[1];
     }
 
-
+    public String[] hours(int day, int month, int year) throws MalformedURLException {
+        targetURL = new URL(baseURL + "/api/3/timetable/actual?date=" + year + "-" + month + "-" + day);
+        String got=this.request(targetURL, "GET", null, accessToken);
+        JSONObject obj= new JSONObject(got);
+            //-----Hours--------------------------------------
+            JSONArray hours = obj.getJSONArray("Hours");
+            String[] hourTimes = new String[hours.length()];
+            for (int i = 0; i < hours.length(); i++) {
+                JSONObject hour = hours.getJSONObject(i);
+                String BeginTime = hour.getString("BeginTime");
+                //String EndTime = hour.getString("EndTime");
+                hourTimes[i] = " (" + BeginTime + ")"/*" - " + EndTime+")"*/;
+            }
+            String[] hoursAndTimes = new String[hourTimes.length+1];
+            for(int i=0; i<hourTimes.length;i++){
+                hoursAndTimes[i+1] = i + hourTimes[i];
+            }
+            hoursAndTimes[0]="";
+            return hoursAndTimes;
+    }
 }

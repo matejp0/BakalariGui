@@ -4,32 +4,24 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.*;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
 
 public class Window extends JFrame {
     private String[] dataArray;
 
     private JButton loginBtn;
-    private JButton marksBtn;
     private JTextField urlField, username;
     private JPasswordField password;
-    private final GridBagConstraints g;
-    private final Container pane;
     private JCheckBox saveCheckBox;
 
     public JTextField getUrlField() { return urlField; }
     public JTextField getUsername() { return username; }
     public JPasswordField getPassword() { return password; }
     public JButton getLoginBtn() { return loginBtn; }
-    public JButton getMarksBtn() { return marksBtn; }
+
     public JCheckBox getSaveCheckBox() { return saveCheckBox; }
 
     Window(String additionalTitle) {
-        pane = this.getContentPane();
-        pane.setLayout(new GridBagLayout());
-        g = new GridBagConstraints();
-        g.insets = new Insets(5, 5, 5, 5);
         this.setTitle("Bakaláři" + " – " + additionalTitle);
         this.setIconImage(Toolkit.getDefaultToolkit().getImage("baky.png"));
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -60,6 +52,10 @@ public class Window extends JFrame {
     }
     //--------------------------------------
     public void login() {
+        Container pane = this.getContentPane();
+        pane.setLayout(new GridBagLayout());
+        GridBagConstraints g = new GridBagConstraints();
+        g.insets = new Insets(5, 5, 5, 5);
         loadCsv();
         urlField = new JTextField(dataArray[0], 30);
         g.gridx=0; g.gridy=0; g.gridwidth=3; g.fill = GridBagConstraints.HORIZONTAL;
@@ -75,49 +71,39 @@ public class Window extends JFrame {
         pane.add(loginBtn, g);
         loginBtn.addActionListener(new Main());
         saveCheckBox = new JCheckBox("Uložit jméno a url", false);
-        g.gridx=0;g.gridy=2;g.gridwidth=1;
+        g.gridx=0;
+        g.gridy=2;
+        g.gridwidth=1;
         pane.add(saveCheckBox, g);
         pack();
         setLocationRelativeTo(null);
         setVisible(true);
     }
     public void userInfo(Bakal bakal) throws IOException {
-        JLabel userInfoLabel = new JLabel(bakal.getUserInfo());
-            g.gridx=0; g.gridy=0; g.gridwidth=2;
-            pane.add(userInfoLabel, g);
+        JTabbedPane tabbedPane = new JTabbedPane();
 
-        String[] hours = new String[13];
-        Arrays.fill(hours, "");
-        JTable timetableTable = new JTable(bakal.getTimetable(date()[0], date()[1], date()[2]), hours);
-            g.gridx=0; g.gridy=1; g.gridwidth=2;
-            timetableTable.setCellSelectionEnabled(false);
-            timetableTable.setEnabled(false);
-            timetableTable.setRowHeight(50);
-            JTableUtilities.setCellsAlignment(timetableTable, SwingConstants.CENTER);
-            pane.add(timetableTable, g);
+        String[] hoursString=bakal.hours(date()[0], date()[1], date()[2]);
+        JTable timetableTable = new JTable(bakal.getTimetable(date()[0], date()[1], date()[2]), hoursString);
+        timetableTable.setCellSelectionEnabled(false);
+        //timetableTable.setEnabled(false);
+        timetableTable.setSelectionBackground(Color.BLUE);
+        timetableTable.setRowHeight(50);
+        JTableUtilities.setCellsAlignment(timetableTable, SwingConstants.CENTER);
+        timetableTable.setFont(new Font("Serif", Font.BOLD, 11));
+        JScrollPane scrollTable = new JScrollPane (timetableTable, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        tabbedPane.addTab("Rozvrh hodin", scrollTable);
 
-        marksBtn = new JButton("Známky");
-            g.gridx=1; g.gridy=2; g.gridwidth=1;
-            pane.add(marksBtn, g);
-            marksBtn.addActionListener(new Main());
+        String marksString = bakal.getMarks();
+        JTextArea textArea = new JTextArea(marksString);
+        JScrollPane scroll = new JScrollPane (textArea, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        tabbedPane.addTab("Známky", scroll);
 
+        add(tabbedPane);
+        setResizable(true);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         pack();
         setLocationRelativeTo(null);
         setVisible(true);
-    }
-    public void marks(Bakal bakal) throws IOException {
-        String output = bakal.getMarks();
-        if(output.length()>0) {
-            JTextArea textArea = new JTextArea();
-            g.gridx = g.gridy = 0;
-            pane.add(textArea, g);
-
-            setResizable(true);
-            setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-            pack();
-            setLocationRelativeTo(null);
-            setVisible(true);
-        }
     }
 
     public void throwMessage(String error, String title, int type){
