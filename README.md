@@ -6,6 +6,8 @@ I added check box to Login window. If the checkbox is selected, it will save the
 Format of addressAndUsername.txt:
 URL;username
 
+![alt text](loginWindow.png)
+
 # For Linux users:
 To make it look native (GTK) you must add this to your ~/.profile file:
 
