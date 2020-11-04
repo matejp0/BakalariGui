@@ -2,13 +2,10 @@ package cz.matejprerovsky.bakalarigui;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.Scanner;
 
 public class Window extends JFrame {
     private String[] dataArray;
@@ -39,19 +36,17 @@ public class Window extends JFrame {
         this.setResizable(false);
     }
     //-----CSV-------------------------------------
-    public boolean loadCsv(){
+    public void loadCsv(){
         dataArray = new String[2];
         try (BufferedReader br = new BufferedReader(new FileReader("addressAndUsername.txt"))) {
             String s;
             while ((s = br.readLine()) != null) {
                 dataArray = s.split(";");
             }
-            return true;
         }
         catch(IOException e){
             dataArray[0]="https://";
             dataArray[1]="username";
-            return false;
         }
     }///
     public void saveCsv(String url, String username) throws IOException{
@@ -111,15 +106,18 @@ public class Window extends JFrame {
         setVisible(true);
     }
     public void marks(Bakal bakal) throws IOException {
-        JTextArea textArea = new JTextArea(bakal.getMarks());
-        g.gridx = g.gridy = 0;
-        pane.add(textArea, g);
+        String output = bakal.getMarks();
+        if(output.length()>0) {
+            JTextArea textArea = new JTextArea();
+            g.gridx = g.gridy = 0;
+            pane.add(textArea, g);
 
-        setResizable(true);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        pack();
-        setLocationRelativeTo(null);
-        setVisible(true);
+            setResizable(true);
+            setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+            pack();
+            setLocationRelativeTo(null);
+            setVisible(true);
+        }
     }
 
     public void throwMessage(String error, String title, int type){
