@@ -19,6 +19,8 @@ public class Bakal {
     private String got;
     private String accessToken;
     private String refreshToken;
+    private String[] baseSubjectAbbrev;
+
     //private boolean connected;
     public Bakal(String baseURL){
         this.baseURL=baseURL;
@@ -43,7 +45,7 @@ public class Bakal {
             refreshToken = obj.getString("refresh_token");
         } catch (NullPointerException ignored){}
 
-        return got != null;
+        return (got != null);
     }
 
     public String getUserInfo() throws IOException {
@@ -56,8 +58,8 @@ public class Bakal {
         return obj.getString("FullName");
     }
 
-    /*public String getMarks() throws IOException {
-        String output = null;
+    public String getMarks() throws IOException {
+        String output = "";
         targetURL=new URL(baseURL+"/api/3/marks");
         got=this.request(targetURL, "GET", null, accessToken);
         JSONObject obj = new JSONObject(got);
@@ -91,16 +93,15 @@ public class Bakal {
             //---------------------------------------------
             String result = "";
             result += baseSubjectAbbrev[i];
-            System.out.println(averageText);
-            if (!averageText.equals("null") || averageText.length() != 0)
+            //if (!averageText.equals("null") || averageText.length() != 0)
                 result += " (" + averageText + ")";
             result += ":\n" + marksString;
             System.out.println(result);
-            output = result;
+            output += result;
         }
         return output;
     }
-    */
+
     public String[][] getTimetable(int day, int month, int year) throws IOException {
         String[][] arr = new String[6][13];
         targetURL=new URL(baseURL+"/api/3/timetable/actual?date="+year+"-"+month+"-"+day);
@@ -132,7 +133,7 @@ public class Bakal {
 
         //-----Subjects----------------------------------------
         JSONArray subjects = obj.getJSONArray("Subjects");
-        String[] baseSubjectAbbrev = new String[subjects.length() + 1];
+        baseSubjectAbbrev = new String[subjects.length() + 1];
         int[] baseSubjectId = new int[subjects.length() + 1];
         baseSubjectId[0]=0;
         baseSubjectAbbrev[0]="";
@@ -229,13 +230,12 @@ public class Bakal {
         } catch (IOException e) {
             connected = false;
         }
-
         return connected;
     }
     private String request(URL target, String method, String data, String token) throws IOException {
         connected();
         //clear output
-        String output = null;
+        String output = "";
 
         if(connected) {
             //-----Http request--------------------------------------------------
@@ -262,17 +262,16 @@ public class Bakal {
                 while ((currentLine = in.readLine()) != null) {
                     output += currentLine;
                 }
-            }
-            //---remove "null" on the start of output JSON
-            output = output.substring(4);
-        }
-
+            } }
         return output;
     }
     private String getDate(String dateString){
         String[] dateInt=dateString.split("-");
         dateInt[2]=dateInt[2].substring(0, 2);
+
+        //remove leading zeros
         dateInt[2]=dateInt[2].replaceFirst("^0+(?!$)", "");
+        dateInt[1]=dateInt[1].replaceFirst("^0+(?!$)", "");
 
         return dateInt[2] + ". " + dateInt[1];
     }

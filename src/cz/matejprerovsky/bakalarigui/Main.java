@@ -3,52 +3,48 @@ package cz.matejprerovsky.bakalarigui;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.io.IOException;
 
 public class Main implements ActionListener {
 
-private static Window loginWindow, infoWindow;
+private static Window loginWindow, infoWindow, marksWindow;
 private static Bakal bakal;
-private String url, username, password;
 private boolean loginSuccess = false;
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         getLogin();
     }
 
-    private static void getLogin() throws IOException {
+    private static void getLogin() {
         loginWindow = new Window("Login");
-        loginWindow.login();
-        loginWindow.setLocationRelativeTo(null);
-        if(Bakal.connected())
-            loginWindow.setVisible(true);
-        else {
+        if(!Bakal.connected()) {
             loginWindow.throwMessage("Žádné internetové připojení!", "Error internetového připojení", JOptionPane.ERROR_MESSAGE);
             System.exit(0);
         }
+        loginWindow.login();
+    }
+    private static void getMarks() throws IOException {
+        marksWindow = new Window("Známky");
+        marksWindow.marks(bakal);
     }
     private static void getInfo() throws IOException {
         infoWindow = new Window("Rozvrh");
         infoWindow.userInfo(bakal);
-        infoWindow.pack();
-        infoWindow.setLocationRelativeTo(null);
-        infoWindow.setVisible(true);
-
-        loginWindow.dispose(); //close login window
+        loginWindow.dispose(); //close the login window
     }
-    private void initBakal() throws IOException {
+    private void initBakal(String url, String username, char[] password) throws IOException {
         bakal = new Bakal(url);
-        loginSuccess=bakal.login(username, password, false);
+        loginSuccess=bakal.login(username, String.valueOf(password), false);
     }
 
     public void actionPerformed(ActionEvent actionEvent) {
         if(actionEvent.getSource().equals(loginWindow.getLoginBtn())) {
+            String url, username;
+            char[] password;
             url = loginWindow.getUrlField().getText();
             username = loginWindow.getUsername().getText();
-            password = String.valueOf(loginWindow.getPassword().getPassword());
-            try { initBakal(); } catch (IOException e) { e.printStackTrace(); }
+            password = loginWindow.getPassword().getPassword();
+            try { initBakal(url, username,password); } catch (IOException e) { e.printStackTrace(); }
 
             if (loginSuccess) {
                 try { getInfo(); } catch (IOException e) { e.printStackTrace(); }
@@ -68,7 +64,8 @@ private boolean loginSuccess = false;
         }
 
         else if(actionEvent.getSource().equals(infoWindow.getMarksBtn())){
-            infoWindow.throwMessage("Implementaci této funkce do GUI jsem ještě nedokončil, takže nebude spuštěna.", "Vývoj", JOptionPane.INFORMATION_MESSAGE);
+            infoWindow.throwMessage("Implementaci této funkce do GUI jsem ještě nedokončil, takže ještě není hotová.", "Ve vývoj", JOptionPane.INFORMATION_MESSAGE);
+            try { getMarks(); } catch (IOException e) { e.printStackTrace(); }
         }
     }
 }

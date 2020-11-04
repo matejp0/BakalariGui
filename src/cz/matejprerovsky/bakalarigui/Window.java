@@ -36,48 +36,9 @@ public class Window extends JFrame {
         this.setTitle("Bakaláři" + " – " + additionalTitle);
         this.setIconImage(Toolkit.getDefaultToolkit().getImage("baky.png"));
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setResizable(true);
+        this.setResizable(false);
     }
-
-    /*
-    private void getMarks(Bakal bakal) throws IOException {
-        Window marksWindow = new Window("Rozvrh", bakal);
-        marksWindow.marks(bakal);
-        marksWindow.pack();
-        marksWindow.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        marksWindow.setLocationRelativeTo(null);
-        marksWindow.setResizable(false);
-        marksWindow.setVisible(true);
-    }
-    private void marks(Bakal bakal) throws IOException {
-        JTextArea textArea = new JTextArea(bakal.getMarks());
-        g.gridx = g.gridy = 0;
-        pane.add(textArea, g);
-    }
-
-     */
-    public void userInfo(Bakal bakal) throws IOException {
-        JLabel userInfoLabel = new JLabel(bakal.getUserInfo());
-            g.gridx=0; g.gridy=0; g.gridwidth=2;
-            pane.add(userInfoLabel, g);
-
-        String[] hours = new String[13];
-        Arrays.fill(hours, "");
-        JTable timetableTable = new JTable(bakal.getTimetable(date()[0], date()[1], date()[2]), hours);
-            g.gridx=0; g.gridy=1; g.gridwidth=2;
-            timetableTable.setCellSelectionEnabled(false);
-            timetableTable.setEnabled(false);
-            timetableTable.setRowHeight(50);
-            JTableUtilities.setCellsAlignment(timetableTable, SwingConstants.CENTER);
-            pane.add(timetableTable, g);
-
-        marksBtn = new JButton("Známky");
-            g.gridx=1; g.gridy=2; g.gridwidth=1;
-            pane.add(marksBtn, g);
-            marksBtn.addActionListener(new Main());
-
-        pack();
-    }
+    //-----CSV-------------------------------------
     public boolean loadCsv(){
         dataArray = new String[2];
         try (BufferedReader br = new BufferedReader(new FileReader("addressAndUsername.txt"))) {
@@ -102,26 +63,63 @@ public class Window extends JFrame {
             bw.flush();
         }
     }
-
+    //--------------------------------------
     public void login() {
         loadCsv();
         urlField = new JTextField(dataArray[0], 30);
-            g.gridx=0; g.gridy=0; g.gridwidth=3; g.fill = GridBagConstraints.HORIZONTAL;
-            pane.add(urlField, g);
+        g.gridx=0; g.gridy=0; g.gridwidth=3; g.fill = GridBagConstraints.HORIZONTAL;
+        pane.add(urlField, g);
         username = new JTextField(dataArray[1], 12);
-            g.gridx=0; g.gridy=1; g.gridwidth=1;
-            pane.add(username, g);
+        g.gridx=0; g.gridy=1; g.gridwidth=1;
+        pane.add(username, g);
         password = new JPasswordField("Password", 12);
-            g.gridx=1; g.gridy=1; g.gridwidth=1;
-            pane.add(password, g);
+        g.gridx=1; g.gridy=1; g.gridwidth=1;
+        pane.add(password, g);
         loginBtn = new JButton("Login");
-            g.gridx=2; g.gridy=1; g.gridwidth=1;
-            pane.add(loginBtn, g);
-            loginBtn.addActionListener(new Main());
+        g.gridx=2; g.gridy=1; g.gridwidth=1;
+        pane.add(loginBtn, g);
+        loginBtn.addActionListener(new Main());
         saveCheckBox = new JCheckBox("Uložit jméno a url", false);
-            g.gridx=0;g.gridy=2;g.gridwidth=1;
-            pane.add(saveCheckBox, g);
+        g.gridx=0;g.gridy=2;g.gridwidth=1;
+        pane.add(saveCheckBox, g);
         pack();
+        setLocationRelativeTo(null);
+        setVisible(true);
+    }
+    public void userInfo(Bakal bakal) throws IOException {
+        JLabel userInfoLabel = new JLabel(bakal.getUserInfo());
+            g.gridx=0; g.gridy=0; g.gridwidth=2;
+            pane.add(userInfoLabel, g);
+
+        String[] hours = new String[13];
+        Arrays.fill(hours, "");
+        JTable timetableTable = new JTable(bakal.getTimetable(date()[0], date()[1], date()[2]), hours);
+            g.gridx=0; g.gridy=1; g.gridwidth=2;
+            timetableTable.setCellSelectionEnabled(false);
+            timetableTable.setEnabled(false);
+            timetableTable.setRowHeight(50);
+            JTableUtilities.setCellsAlignment(timetableTable, SwingConstants.CENTER);
+            pane.add(timetableTable, g);
+
+        marksBtn = new JButton("Známky");
+            g.gridx=1; g.gridy=2; g.gridwidth=1;
+            pane.add(marksBtn, g);
+            marksBtn.addActionListener(new Main());
+
+        pack();
+        setLocationRelativeTo(null);
+        setVisible(true);
+    }
+    public void marks(Bakal bakal) throws IOException {
+        JTextArea textArea = new JTextArea(bakal.getMarks());
+        g.gridx = g.gridy = 0;
+        pane.add(textArea, g);
+
+        setResizable(true);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        pack();
+        setLocationRelativeTo(null);
+        setVisible(true);
     }
 
     public void throwMessage(String error, String title, int type){
