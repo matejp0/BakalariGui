@@ -2,27 +2,31 @@ package cz.matejprerovsky.bakalarigui;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Scanner;
 
-public class Window extends JFrame{
-    private JButton loginBtn, marksBtn;
+public class Window extends JFrame {
+    private String[] dataArray;
+
+    private JButton loginBtn;
+    private JButton marksBtn;
     private JTextField urlField, username;
     private JPasswordField password;
     private final GridBagConstraints g;
     private final Container pane;
+    private JCheckBox saveCheckBox;
 
     public JTextField getUrlField() { return urlField; }
     public JTextField getUsername() { return username; }
     public JPasswordField getPassword() { return password; }
-
     public JButton getLoginBtn() { return loginBtn; }
     public JButton getMarksBtn() { return marksBtn; }
+    public JCheckBox getSaveCheckBox() { return saveCheckBox; }
 
     Window(String additionalTitle) {
         pane = this.getContentPane();
@@ -71,26 +75,36 @@ public class Window extends JFrame{
             g.gridx=1; g.gridy=2; g.gridwidth=1;
             pane.add(marksBtn, g);
             marksBtn.addActionListener(new Main());
+
+        pack();
     }
-    public void login(){
-        String[] dataArray = new String[2];
-        try {
-            File file = new File("addressAndUsername.txt");
-            Scanner fileReader = new Scanner(file);
-            for (int i = 0; i < 2; i++) {
-                String data;
-                data = fileReader.nextLine();
-                dataArray[i] = data;
-                System.out.println(data);
+    public boolean loadCsv(){
+        dataArray = new String[2];
+        try (BufferedReader br = new BufferedReader(new FileReader("addressAndUsername.txt"))) {
+            String s;
+            while ((s = br.readLine()) != null) {
+                dataArray = s.split(";");
             }
-            fileReader.close();
-        } catch (FileNotFoundException e) {
-            System.out.println("An error occurred.");
-            e.printStackTrace();
+            return true;
+        }
+        catch(IOException e){
             dataArray[0]="https://";
             dataArray[1]="username";
+            return false;
         }
+    }
+    public void saveCsv(String url, String username) throws IOException{
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter("addressAndUsername.txt"))) {
+            String[] values = {url, username};
+            String line = String.join(";", values);
+            bw.append(line);
+            bw.append("\n");
+            bw.flush();
+        }
+    }
 
+    public void login() {
+        loadCsv();
         urlField = new JTextField(dataArray[0], 30);
             g.gridx=0; g.gridy=0; g.gridwidth=3; g.fill = GridBagConstraints.HORIZONTAL;
             pane.add(urlField, g);
@@ -104,6 +118,10 @@ public class Window extends JFrame{
             g.gridx=2; g.gridy=1; g.gridwidth=1;
             pane.add(loginBtn, g);
             loginBtn.addActionListener(new Main());
+        saveCheckBox = new JCheckBox("Uložit jméno a url", false);
+            g.gridx=0;g.gridy=2;g.gridwidth=1;
+            pane.add(saveCheckBox, g);
+        pack();
     }
 
     public void throwMessage(String error, String title, int type){
@@ -128,4 +146,5 @@ public class Window extends JFrame{
 
         return output;
     }
+
 }

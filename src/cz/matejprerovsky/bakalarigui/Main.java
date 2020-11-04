@@ -3,6 +3,8 @@ package cz.matejprerovsky.bakalarigui;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.io.IOException;
 
 public class Main implements ActionListener {
@@ -12,14 +14,13 @@ private static Bakal bakal;
 private String url, username, password;
 private boolean loginSuccess = false;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         getLogin();
     }
 
-    private static void getLogin() {
+    private static void getLogin() throws IOException {
         loginWindow = new Window("Login");
         loginWindow.login();
-        loginWindow.pack();
         loginWindow.setLocationRelativeTo(null);
         if(Bakal.connected())
             loginWindow.setVisible(true);
@@ -51,6 +52,11 @@ private boolean loginSuccess = false;
 
             if (loginSuccess) {
                 try { getInfo(); } catch (IOException e) { e.printStackTrace(); }
+                if(loginWindow.getSaveCheckBox().isSelected()) {
+                    try { loginWindow.saveCsv(url, username); } catch (IOException e) {
+                        loginWindow.throwMessage("Nepodařilo se uložit url a jméno", "Error", JOptionPane.WARNING_MESSAGE);
+                    }
+                }
                 loginWindow.throwMessage("Úspěšně přihlášeno", "Úspěch", JOptionPane.INFORMATION_MESSAGE);
             }
             else if (!loginSuccess) {
