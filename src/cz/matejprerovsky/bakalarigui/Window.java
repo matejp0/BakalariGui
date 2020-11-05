@@ -95,6 +95,7 @@ public class Window extends JFrame {
 
         String marksString = bakal.getMarks();
         JTextArea textArea = new JTextArea(marksString);
+        textArea.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 15));
         JScrollPane scroll = new JScrollPane (textArea, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         tabbedPane.addTab("Známky", scroll);
 
