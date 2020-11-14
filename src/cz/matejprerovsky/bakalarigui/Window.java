@@ -41,13 +41,17 @@ public class Window extends JFrame {
             dataArray[1]="username";
         }
     }///
-    public void saveCsv(String url, String username) throws IOException{
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter("addressAndUsername.txt"))) {
+    public void saveCsv(String url, String username){
+        try {
+            BufferedWriter bw = new BufferedWriter(new FileWriter("addressAndUsername.txt"));
             String[] values = {url, username};
             String line = String.join(";", values);
             bw.append(line);
             bw.append("\n");
             bw.flush();
+        }
+        catch (IOException e){
+            this.throwMessage("Nepodařilo se uložit přihlašovací jméno a URL.", "Chyba při ukládání", JOptionPane.WARNING_MESSAGE);
         }
     }
     //--------------------------------------
@@ -79,7 +83,7 @@ public class Window extends JFrame {
         setLocationRelativeTo(null);
         setVisible(true);
     }
-    public void userInfo(Bakal bakal) throws IOException {
+    public void userInfo(Bakal bakal){
         JTabbedPane tabbedPane = new JTabbedPane();
 
         String[] hoursString=bakal.hours(date()[0], date()[1], date()[2]);
@@ -107,7 +111,7 @@ public class Window extends JFrame {
         setVisible(true);
     }
 
-    public void throwMessage(String error, String title, int type){
+    public void throwMessage(String title, String error, int type){
         JOptionPane.showMessageDialog(this, error, title, type);
     }
 

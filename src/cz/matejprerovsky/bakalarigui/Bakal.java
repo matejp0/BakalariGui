@@ -26,36 +26,39 @@ public class Bakal {
         this.baseURL = baseURL;
     }
 
-    public boolean login(String username, String password, boolean refresh) throws MalformedURLException {
-        String got=null;
-        if(connected()){
+    public boolean login(String username, String password, boolean refresh) {
+        String got;
             if (!refresh) {
                 data = "client_id=ANDR&grant_type=password&username=" + username + "&password=" + password;
             } else if (refresh) {
                 data = "client_id=ANDR&grant_type=refresh_token&refresh_token=" + refreshToken;
             }
-            targetURL = new URL(baseURL + "/api/login");
 
-            //-----login--------------------------------------------------
+        try {
+            targetURL = new URL(baseURL + "/api/login");
+        } catch (MalformedURLException e) {
+
+        }
+
+        //-----login--------------------------------------------------
             got = this.request(targetURL, "POST", data, null);
 
             //-----Process JSON output---------------------------
+            JSONObject obj = new JSONObject(got);
+            accessToken = obj.getString("access_token");
+            refreshToken = obj.getString("refresh_token");
 
-                JSONObject obj = new JSONObject(got);
-                accessToken = obj.getString("access_token");
-                refreshToken = obj.getString("refresh_token");
-
-
-        }
-        else Main.notConnectedMessage();
         return (got != null);
     }
 
-    public String getUserInfo() throws IOException {
+    public String getUserInfo(){
         String got;
         String output;
+        try {
             targetURL = new URL(baseURL + "/api/3/user");
-            got = this.request(targetURL, "GET", null, accessToken);
+        } catch (MalformedURLException e) {
+        }
+        got = this.request(targetURL, "GET", null, accessToken);
 
             //-----Process JSON output-------------------------
             JSONObject obj = new JSONObject(got);
@@ -65,12 +68,16 @@ public class Bakal {
         return output;
     }
 
-    public String getMarks() throws IOException {
+    public String getMarks() {
         String got;
         String output = "";
 
+        try {
             targetURL = new URL(baseURL + "/api/3/marks");
-            got = this.request(targetURL, "GET", null, accessToken);
+        } catch (MalformedURLException e) {
+
+        }
+        got = this.request(targetURL, "GET", null, accessToken);
             JSONObject obj = new JSONObject(got);
 
             JSONArray subjects = obj.getJSONArray("Subjects");
@@ -111,12 +118,16 @@ public class Bakal {
         return output;
     }
 
-    public String[][] getTimetable(int day, int month, int year) throws IOException {
+    public String[][] getTimetable(int day, int month, int year){
         String got;
         String[][] arr = new String[5][13];
 
+        try {
             targetURL = new URL(baseURL + "/api/3/timetable/actual?date=" + year + "-" + month + "-" + day);
-            got = this.request(targetURL, "GET", null, accessToken);
+        } catch (MalformedURLException e) {
+
+        }
+        got = this.request(targetURL, "GET", null, accessToken);
             JSONObject obj = new JSONObject(got);
 
             //-----Rooms-----------------------------------------
@@ -217,69 +228,44 @@ public class Bakal {
         return arr;
     }
 
-    public static boolean connected() {
-        boolean connected;
-        try {
-            URL url = new URL("http://www.google.com");
-            URLConnection connection = url.openConnection();
-            connection.connect();
-            connected = true;
-        } catch (IOException e) {
-            connected = false;
-        }
-        return connected;
-    }
 
-    private String request(URL target, String method, String data, String token)  {
-        //clear output
+    private String request(URL target, String method, String data, String token) {
+        /* clear output */
         String output = "";
-        HttpURLConnection conn=null;
-        //-----Http request--------------------------------------------------
-        try {
-            conn = (HttpURLConnection) target.openConnection();
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-            Main.notConnectedMessage();
-        } catch (IOException e){
-            Main.error();
-        }
-        if(conn!=null) {
-            conn.setDoOutput(true);
-            conn.setInstanceFollowRedirects(true);
-            conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-            conn.setRequestProperty("charset", "UTF-8");
-            if (token != null) {
-                conn.setRequestProperty("Authorization", "Bearer " + token);
-            }
-            try {
-                conn.setRequestMethod(method);
-            } catch (ProtocolException e) {
-                Main.error();
-                e.printStackTrace();
-            }
-            conn.setUseCaches(false);
+        HttpURLConnection conn;
+        conn = null;
 
-            if (data != null) {
-                conn.setRequestProperty("Content-Length", "" + data.length());
-                try (OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream())) {
-                    out.write(data);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    Main.error();
-                }
-            }
+        /** -----Http request-------------------------------------------------- */
+        try { conn = (HttpURLConnection) target.openConnection(); } catch (IOException ignored) { }
 
-            //-----Read input stream-------------------------------------
-            try (BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
-                String currentLine;
-                while ((currentLine = in.readLine()) != null) {
-                    output += currentLine;
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-                Main.wrongLogin();
+        conn.setDoOutput(true);
+        conn.setInstanceFollowRedirects(true);
+        conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+        conn.setRequestProperty("charset", "UTF-8");
+        /** Sets request method (POST or GET) */
+        try { conn.setRequestMethod(method); } catch (ProtocolException e) { Main.errorMessage(); }
+        conn.setUseCaches(false);
+        if (token != null) conn.setRequestProperty("Authorization", "Bearer " + token);
+
+        /** Outputs data if needed */
+        if (data != null)
+        {
+            conn.setRequestProperty("Content-Length", "" + data.length());
+            try (OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream())) { out.write(data); }
+            catch (IllegalArgumentException illegalArgumentException){
+                Main.wrongAddressOrNoInternetConnectionMessage();
             }
+            catch (IOException ioException){}
         }
+
+        /** Reads input stream */
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream())))
+        {
+            String currentLine;
+            while ((currentLine = in.readLine()) != null) { output += currentLine; }
+        }
+        catch (IOException e) { Main.wrongLoginMessage(); }
+
         return output;
     }
 
@@ -294,8 +280,12 @@ public class Bakal {
         return dateInt[2] + ". " + dateInt[1];
     }
 
-    public String[] hours(int day, int month, int year) throws MalformedURLException {
-        targetURL = new URL(baseURL + "/api/3/timetable/actual?date=" + year + "-" + month + "-" + day);
+    public String[] hours(int day, int month, int year) {
+        try {
+            targetURL = new URL(baseURL + "/api/3/timetable/actual?date=" + year + "-" + month + "-" + day);
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
         String got=this.request(targetURL, "GET", null, accessToken);
         JSONObject obj= new JSONObject(got);
             //-----Hours--------------------------------------

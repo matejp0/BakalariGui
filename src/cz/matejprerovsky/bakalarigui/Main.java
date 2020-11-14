@@ -9,7 +9,10 @@ public class Main implements ActionListener {
 
     private static Window loginWindow, infoWindow;
     private static Bakal bakal;
-    private boolean loginSuccess = false;
+
+    final private static String notConnectedText = "Žádné internetové připojení!";
+    final private static String wrongLoginText = "Vadné přihlašovací údaje.";
+    final private static String errorText = "Error";
 
     public static void main(String[] args) {
         getLogin();
@@ -17,53 +20,38 @@ public class Main implements ActionListener {
 
     private static void getLogin() {
         loginWindow = new Window("Login");
-        if(!Bakal.connected()) {
-            notConnectedMessage();
-            System.exit(0);
-        }
         loginWindow.login();
     }
 
-    private static void getInfo() throws IOException {
+    private static void getInfo(){
         infoWindow = new Window(bakal.getUserInfo());
         infoWindow.userInfo(bakal);
-        loginWindow.dispose(); //close the login window
-    }
-    private void initBakal(String url, String username, char[] password) throws IOException {
-        bakal = new Bakal(url);
-        loginSuccess=bakal.login(username, String.valueOf(password), false);
+        loginWindow.dispose(); //dispose the login window
     }
 
     public void actionPerformed(ActionEvent actionEvent) {
-        if(actionEvent.getSource().equals(loginWindow.getLoginBtn()))
+        if(actionEvent.getSource()==loginWindow.getLoginBtn())
         {
             String url, username;
             char[] password;
             url = loginWindow.getUrlField().getText();
             username = loginWindow.getUsername().getText();
             password = loginWindow.getPassword().getPassword();
-            //-----login-----------------------------------------------------
-            try { initBakal(url, username,password); } catch (IOException e) { e.printStackTrace(); }
+            bakal = new Bakal(url);
 
-            if (loginSuccess) {
-                try { getInfo(); } catch (IOException e) { e.printStackTrace(); }
+            //-----login-----------------------------------------------------
+            if (bakal.login(username, String.valueOf(password), false)) {
+                getInfo();
                 loginWindow.throwMessage("Úspěšně přihlášeno", "Úspěch", JOptionPane.INFORMATION_MESSAGE);
-                if(loginWindow.getSaveCheckBox().isSelected()) {
-                    try { loginWindow.saveCsv(url, username); } catch (IOException e) {
-                        loginWindow.throwMessage("Nepodařilo se uložit url a jméno", "Error", JOptionPane.WARNING_MESSAGE);
-                    }
-                }
+                if(loginWindow.getSaveCheckBox().isSelected())
+                    loginWindow.saveCsv(url, username);
             }
         }
     }
 
-    public static void notConnectedMessage(){
-        loginWindow.throwMessage("Žádné internetové připojení!", "Error internetového připojení", JOptionPane.ERROR_MESSAGE);
+    public static void wrongLoginMessage(){ loginWindow.throwMessage(wrongLoginText, wrongLoginText, JOptionPane.WARNING_MESSAGE); }
+    public static void wrongAddressOrNoInternetConnectionMessage(){
+        loginWindow.throwMessage("Buď máte špatně URL adresu, nebo nejste připojeni k internetu", "Buď máte špatně URL adresu, nebo nejste připojeni k internetu", JOptionPane.ERROR_MESSAGE);
     }
-    public static void wrongLogin(){
-        loginWindow.throwMessage("Vadné přihlašovací údaje", "Error", JOptionPane.WARNING_MESSAGE);
-    }
-    public static void error(){
-        loginWindow.throwMessage("Závažný error", "Error", JOptionPane.ERROR_MESSAGE);
-    }
+    public static void errorMessage(){ loginWindow.throwMessage(errorText, errorText, JOptionPane.ERROR_MESSAGE); }
 }
