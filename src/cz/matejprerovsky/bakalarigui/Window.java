@@ -5,7 +5,9 @@ import java.awt.*;
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
+/**
+ * @author Matěj Přerovský
+ */
 public class Window extends JFrame {
     private String[] dataArray;
 

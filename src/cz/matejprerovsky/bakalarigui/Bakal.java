@@ -11,12 +11,14 @@ import org.json.*;
 
 import static jdk.nashorn.internal.objects.NativeString.trim;
 
+/**
+ * @author Matěj Přerovský
+ */
 public class Bakal {
     final private String[] dayOfWeek = new String[]{"Po", "Út", "Stř", "Čt", "Pá"};//new String[]{"Pondělí", "Úterý", "Středa", "Čtvrtek", "Pátek"};
 
     private final String baseURL;
     private URL targetURL;
-    private String data;
     private String accessToken;
     private String refreshToken;
     private String[] baseSubjectAbbrev;
@@ -26,72 +28,68 @@ public class Bakal {
         this.baseURL = baseURL;
     }
 
+    /**
+     * @param username
+     * Username
+     * @param password
+     * Password
+     * @param refresh
+     * If you've already logged in but your access token is expired, you can use refresh token!
+     *
+     * @return successful login
+     */
     public boolean login(String username, String password, boolean refresh) {
-        String got;
-            if (!refresh) {
-                data = "client_id=ANDR&grant_type=password&username=" + username + "&password=" + password;
-            } else if (refresh) {
-                data = "client_id=ANDR&grant_type=refresh_token&refresh_token=" + refreshToken;
-            }
+        String data;
+        if (!refresh)
+            data = "client_id=ANDR&grant_type=password&username=" + username + "&password=" + password;
+        else
+            data = "client_id=ANDR&grant_type=refresh_token&refresh_token=" + refreshToken;
 
-        try {
-            targetURL = new URL(baseURL + "/api/login");
-        } catch (MalformedURLException e) {
+        try { targetURL = new URL(baseURL + "/api/login");
+        } catch (MalformedURLException ignored) { }
 
-        }
+        String got = this.request(targetURL, "POST", data, null);
 
-        //-----login--------------------------------------------------
-            got = this.request(targetURL, "POST", data, null);
-
-            //-----Process JSON output---------------------------
-            JSONObject obj = new JSONObject(got);
-            accessToken = obj.getString("access_token");
-            refreshToken = obj.getString("refresh_token");
+        JSONObject obj = new JSONObject(got);
+        accessToken = obj.getString("access_token");
+        refreshToken = obj.getString("refresh_token");
 
         return (got != null);
     }
 
+    /**
+     * @return Name and class of the student
+     */
     public String getUserInfo(){
-        String got;
-        String output;
-        try {
-            targetURL = new URL(baseURL + "/api/3/user");
-        } catch (MalformedURLException e) {
-        }
-        got = this.request(targetURL, "GET", null, accessToken);
+        try { targetURL = new URL(baseURL + "/api/3/user");
+        } catch (MalformedURLException ignored) { }
 
-            //-----Process JSON output-------------------------
-            JSONObject obj = new JSONObject(got);
+        String got = this.request(targetURL, "GET", null, accessToken);
+        JSONObject obj = new JSONObject(got);
 
-            output = obj.getString("FullName");
-
-        return output;
+        return obj.getString("FullName");
     }
 
     public String getMarks() {
-        String got;
-        String output = "";
-
         try {
             targetURL = new URL(baseURL + "/api/3/marks");
-        } catch (MalformedURLException e) {
+        } catch (MalformedURLException e) { }
 
-        }
-        got = this.request(targetURL, "GET", null, accessToken);
-            JSONObject obj = new JSONObject(got);
+        String got = this.request(targetURL, "GET", null, accessToken);
+        JSONObject obj = new JSONObject(got);
+        JSONArray subjects = obj.getJSONArray("Subjects");
+        String output = "";
+        for (int i = 0; i < subjects.length(); i++)
+        {
+            JSONObject subject = subjects.getJSONObject(i);
+            String averageText = trim(subject.get("AverageText").toString());
 
-            JSONArray subjects = obj.getJSONArray("Subjects");
-            for (int i = 0; i < subjects.length(); i++) {
-                JSONObject subject = subjects.getJSONObject(i);
-
-                String averageText = trim(subject.get("AverageText").toString());
-
-                //-----Get subject abbrevation----------
+            /**-----Get subject abbrevation----------*/
                 JSONObject subjectInfo = subject.getJSONObject("Subject");
                 baseSubjectAbbrev = new String[subjects.length()];
                 baseSubjectAbbrev[i] = trim(subjectInfo.getString("Abbrev"));
 
-                //-----Get marks-------------------------
+            /**-----Get marks-------------------------*/
                 JSONArray marks = subject.getJSONArray("Marks");
                 String marksString = "";
                 for (int j = 0; j < marks.length(); j++) {
@@ -106,18 +104,21 @@ public class Bakal {
                     marksString += date + "), " + "Váha: " + weight + "\n";
 
                 }
-                //---------------------------------------------
-                String result = "";
-                result += baseSubjectAbbrev[i];
-                //if (!averageText.equals("null") || averageText.length() != 0)
-                result += " (" + averageText + ")";
-                result += ":\n" + marksString;
-                System.out.println(result);
+                String result = baseSubjectAbbrev[i] + " (" + averageText + ")" + ":\n" + marksString;
                 output += result;
             }
         return output;
     }
 
+    /**
+     * @param day
+     * Day
+     * @param month
+     * Month
+     * @param year
+     * Year
+     * @return
+     */
     public String[][] getTimetable(int day, int month, int year){
         String got;
         String[][] arr = new String[5][13];

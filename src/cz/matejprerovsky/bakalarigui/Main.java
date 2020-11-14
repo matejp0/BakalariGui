@@ -4,7 +4,9 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
-
+/**
+ * @author Matěj Přerovský
+ */
 public class Main implements ActionListener {
 
     private static Window loginWindow, infoWindow;
@@ -40,12 +42,13 @@ public class Main implements ActionListener {
             bakal = new Bakal(url);
 
             //-----login-----------------------------------------------------
-            if (bakal.login(username, String.valueOf(password), false)) {
-                getInfo();
-                loginWindow.throwMessage("Úspěšně přihlášeno", "Úspěch", JOptionPane.INFORMATION_MESSAGE);
-                if(loginWindow.getSaveCheckBox().isSelected())
-                    loginWindow.saveCsv(url, username);
-            }
+            bakal.login(username, String.valueOf(password), false);
+            getInfo();
+            loginWindow.throwMessage("Úspěšně přihlášeno", "Úspěch", JOptionPane.INFORMATION_MESSAGE);
+
+            if(loginWindow.getSaveCheckBox().isSelected())
+                loginWindow.saveCsv(url, username);
+
         }
     }
 
