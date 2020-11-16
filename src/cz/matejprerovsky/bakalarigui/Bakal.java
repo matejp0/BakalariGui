@@ -53,7 +53,8 @@ public class Bakal {
         JSONObject obj = new JSONObject(got);
         accessToken = obj.getString("access_token");
         refreshToken = obj.getString("refresh_token");
-
+        System.out.println(accessToken);
+        System.out.println(refreshToken);
         return (got != null);
     }
 
@@ -129,6 +130,7 @@ public class Bakal {
 
         }
         got = this.request(targetURL, "GET", null, accessToken);
+        System.out.println(got);
             JSONObject obj = new JSONObject(got);
 
             //-----Rooms-----------------------------------------
@@ -176,7 +178,7 @@ public class Bakal {
                     int hourId = lesson.getInt("HourId");
 
                     //-----Get room-------------------------
-                    String roomId = lesson.getString("RoomId");
+                    String roomId = lesson.get("RoomId").toString();
                     int indexOfRoom = 0;
                     for (int c = 0; c < roomIds.length; c++) {
                         if (roomId.equals(roomIds[c]))
@@ -199,7 +201,12 @@ public class Bakal {
                     String subjectAbbrev = "";
 
                     String subjectIdString = trim(lesson.get("SubjectId"));
-                    int subjectId = Integer.parseInt(subjectIdString);
+                    int subjectId=0;
+                    try{
+                        subjectId = Integer.parseInt(subjectIdString);
+                    } catch (NumberFormatException e){
+
+                    }
 
                     int indexOfSubject = 0;
                     for (int k = 0; k < baseSubjectId.length; k++) {
